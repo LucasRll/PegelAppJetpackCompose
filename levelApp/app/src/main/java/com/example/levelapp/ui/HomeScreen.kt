@@ -14,21 +14,16 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
-import com.example.levelapp.CurrentMeasurement
 import com.example.levelapp.R
 import com.example.levelapp.Screen
-import com.example.levelapp.WebScraper
+import com.example.levelapp.database.DatabaseHandler
 import com.example.levelapp.ui.theme.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(navController: NavController, db: DatabaseHandler) {
     Box(
         modifier = Modifier
             .background(background)
@@ -229,40 +224,5 @@ fun rewind() {
                 color = textDark
             )
         }
-    }
-}
-
-
-var currentMeasurement = mutableStateOf(CurrentMeasurement("", 0.0, 0, "", ""))
-
-@Composable
-fun messpunkte(content: String) {
-    Row(modifier = Modifier.padding(15.dp)) {
-        Box(
-            modifier = Modifier
-                .background(Color.LightGray)
-                .padding(15.dp)
-
-        ) {
-            Text(
-                text = currentMeasurement.value.high.toString()
-            )
-        }
-    }
-
-}
-
-@Composable
-fun aktualisieren() {
-    Button(
-        onClick = {
-            GlobalScope.launch {
-                currentMeasurement.value = WebScraper.currentMeasurementMagdeburgStrombruecke()
-            }
-        },
-        modifier = Modifier
-            .padding(15.dp)
-    ) {
-        Text(text = "Aktualisieren")
     }
 }
