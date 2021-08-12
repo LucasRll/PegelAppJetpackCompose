@@ -15,7 +15,7 @@ class DatabaseHandler(context: Context): SQLiteOpenHelper(context, "PegelDB", nu
         TODO("Not yet implemented")
     }
 
-    fun insertData(station: Station) {
+    fun insertStation(station: Station) {
         val db = this.writableDatabase
         var cv = ContentValues()
         cv.put("uuid", station.uuid)

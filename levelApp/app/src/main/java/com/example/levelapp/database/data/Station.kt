@@ -14,6 +14,8 @@ class Station {
     var trend: Int = 0
     var selected: Boolean = false
 
+    constructor()
+
     constructor(uuid: String, longname: String, km: Double, longitude: Double, latitude: Double, water: String, timestamp: String, value: Double, trend: Int, selected: Boolean) {
         this.uuid = uuid
         this.longname = longname

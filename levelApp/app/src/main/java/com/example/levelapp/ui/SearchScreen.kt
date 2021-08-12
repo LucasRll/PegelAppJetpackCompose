@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -17,16 +18,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import com.example.levelapp.R
+import com.example.levelapp.Screen
 import com.example.levelapp.api.Requests
 import com.example.levelapp.database.DatabaseHandler
 import com.example.levelapp.database.data.Station
 import com.example.levelapp.ui.theme.background
 import com.example.levelapp.ui.theme.boxBlue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
-const val BASE_URL = "https://www.pegelonline.wsv.de/"
-var stations = remember {mutableListOf<Station>()}
 
 @Composable
 fun SearchScreen(navController: NavController, db: DatabaseHandler) {
@@ -36,9 +41,6 @@ fun SearchScreen(navController: NavController, db: DatabaseHandler) {
             .fillMaxSize()
     ) {
         Column {
-            val api = Requests()
-            api.getStations(db)
-            stations.addAll(db.readData())
             SearchBox()
             SearchResults(navController, db)
         }
@@ -78,6 +80,10 @@ fun SearchBox() {
 
 @Composable
 fun SearchResults(navController: NavController, db: DatabaseHandler) {
+
+    val api = Requests()
+    addData(api)
+    val stationsRemember = remember { api.stations }
     Box(
         modifier = Modifier
             //.padding(start = 25.dp, end = 25.dp)
@@ -86,7 +92,7 @@ fun SearchResults(navController: NavController, db: DatabaseHandler) {
         LazyColumn(
             contentPadding = PaddingValues(start = 25.dp, end = 25.dp, top = 25.dp)
         ) {
-            items(stations.value) {
+            items(stationsRemember) {
                 Box(
                     modifier = Modifier
                         .padding(bottom = 5.dp)
@@ -94,8 +100,12 @@ fun SearchResults(navController: NavController, db: DatabaseHandler) {
                         .background(boxBlue)
                         .fillMaxWidth()
                         .clickable {
-                            //db.updateSelected(it.uuid)
-                            navController.popBackStack()
+                            if (db.readData().isEmpty()) {
+                                navController.navigate(Screen.HomeScreen.route)
+                            } else {
+                                //db.updateSelected(it.uuid)
+                                navController.popBackStack()
+                            }
                         }
                 ) {
                     Column(
@@ -119,5 +129,16 @@ fun SearchResults(navController: NavController, db: DatabaseHandler) {
             }
         }
     }
+    addData(api)
+}
+
+/**
+ * Adds all Stations to the Search Screen
+ */
+fun addData(api: Requests) {
+    GlobalScope.launch {
+        api.getStations()
+    }
+
 }
 
