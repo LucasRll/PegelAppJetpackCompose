@@ -8,6 +8,7 @@ data class StationsItem(
     val longname: String,
     val number: String,
     val shortname: String,
+    val timeseries: List<Timesery>,
     val uuid: String,
     val water: Water
 )

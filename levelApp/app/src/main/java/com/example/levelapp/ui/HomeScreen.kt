@@ -19,8 +19,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.levelapp.R
 import com.example.levelapp.Screen
+import com.example.levelapp.api.Requests
 import com.example.levelapp.database.DatabaseHandler
+import com.example.levelapp.database.data.StationDb
 import com.example.levelapp.ui.theme.*
+import com.example.levelapp.util.StringUtil
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(navController: NavController, db: DatabaseHandler) {
@@ -31,9 +36,9 @@ fun HomeScreen(navController: NavController, db: DatabaseHandler) {
             .verticalScroll(state = ScrollState(0), enabled = true)
     ) {
         Column {
-            headerSection(navController = navController)
-            mainView()
-            nearestStations()
+            headerSection(navController)
+            mainView(db)
+            nearestStations(db)
             rewind()
         }
     }
@@ -43,6 +48,7 @@ fun HomeScreen(navController: NavController, db: DatabaseHandler) {
 
 @Composable
 fun headerSection(navController: NavController) {
+
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Bottom,
@@ -73,8 +79,27 @@ fun headerSection(navController: NavController) {
     }
 }
 
+fun updateSelectedStation(db: DatabaseHandler): StationDb {
+    var station = db.getSelected()
+    while (station.longname == "") {
+        station = db.getSelected()
+    }
+    return station
+}
+
+/**
+ * Adds all Stations to the Search Screen
+ */
+fun getSelected(db: DatabaseHandler) {
+    GlobalScope.launch {
+        db.getSelected()
+    }
+}
+
 @Composable
-fun mainView() {
+fun mainView(db: DatabaseHandler) {
+    getSelected(db)
+    val stationRemember = remember { db.selectedStationDb }
     Box(
         modifier = Modifier
             .padding(start = 25.dp, end = 25.dp, bottom = 25.dp)
@@ -94,19 +119,19 @@ fun mainView() {
                 .padding(25.dp)
         ) {
             Text(
-                text = "Sonntag, 08.08.2021",// todo
+                text = StringUtil.changeDateFormat(stationRemember.value.timestamp),// todo
                 style = MaterialTheme.typography.body1,
                 color = Color.White,
                 modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 5.dp)
             )
             Text(
-                text = "Magdeburg-Strombrücke",// todo
+                text = StringUtil.toLeadingCapitalLetterName(stationRemember.value.longname),
                 style = MaterialTheme.typography.h2,
                 color = Color.White,
                 modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 5.dp)
             )
             Text(
-                text = "Elbe (326.67 km)",// todo
+                text = StringUtil.waterAndKilometer(stationRemember.value.water, stationRemember.value.km),
                 style = MaterialTheme.typography.body1,
                 color = Color.White,
                 modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 20.dp)
@@ -120,7 +145,7 @@ fun mainView() {
             ) {
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
-                        text = "123.4", //todo
+                        text = stationRemember.value.value.toString(), //todo
                         style = MaterialTheme.typography.h3,
                         color = Color.White
                     )
@@ -149,7 +174,8 @@ fun mainView() {
 }
 
 @Composable
-fun nearestStations() {
+fun nearestStations(db: DatabaseHandler) {
+    //val nearestStationsRemember = remember { api.stations }
     Column(
         modifier = Modifier
             .padding(bottom = 25.dp)

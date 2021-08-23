@@ -1,7 +1,7 @@
 package com.example.levelapp.database.data
 
 
-class Station {
+class StationDb {
 
     var uuid: String = ""
     var longname: String = ""

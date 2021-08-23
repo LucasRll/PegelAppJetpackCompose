@@ -1,6 +1,6 @@
 package com.example.levelapp.api.data
 
-data class CurrentMeasurements(
+data class CurrentMeasurement(
     val stateMnwMhw: String,
     val stateNswHsw: String,
     val timestamp: String,
