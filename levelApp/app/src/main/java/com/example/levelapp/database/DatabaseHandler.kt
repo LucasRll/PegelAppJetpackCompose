@@ -14,6 +14,8 @@ class DatabaseHandler(context: Context) : SQLiteOpenHelper(context, "PegelDB", n
 
     var stationsDb = mutableStateListOf(StationDb())
 
+    var searchedStations = mutableStateListOf(StationDb())
+
     override fun onCreate(db: SQLiteDatabase?) {
         db?.execSQL("CREATE TABLE Station (uuid char(36) NOT NULL,longname varchar(100),km DOUBLE,longitude DOUBLE,latitude DOUBLE,water varchar(50), timestamp varchar(100), value DOUBLE, trend INT, selected varchar(10))")
     }
@@ -90,9 +92,9 @@ class DatabaseHandler(context: Context) : SQLiteOpenHelper(context, "PegelDB", n
         }
 
         result.close()
-       // db.close()
+        // db.close()
 
-        stationsDb.remove(StationDb())
+        stationsDb.clear()
         stationsDb.addAll(list)
 
         return list
@@ -151,17 +153,42 @@ class DatabaseHandler(context: Context) : SQLiteOpenHelper(context, "PegelDB", n
     }
 
     fun updateSelected(stationDb: StationDb) {
-        try {
-            val db = this.writableDatabase
-            val querySelected = "UPDATE Station SET selected=\'false\'"
-            db.execSQL(querySelected)
-            val query = "UPDATE Station SET selected=\'true\' WHERE uuid=\'${stationDb.uuid}\'"
-            selectedStationDb.value = stationDb
-            db.execSQL(query)
-        } catch (error: Exception) {
-            println(error)
+        val db = this.writableDatabase
+        val querySelected = "UPDATE Station SET selected=\'false\'"
+        db.execSQL(querySelected)
+        val query = "UPDATE Station SET selected=\'true\' WHERE uuid=\'${stationDb.uuid}\'"
+        selectedStationDb.value = stationDb
+        db.execSQL(query)
+    }
+
+    fun fuzzySearch(searchString: String) {
+        val db = this.writableDatabase
+        var list: MutableList<StationDb> = ArrayList()
+
+        val query = "SELECT * FROM Station WHERE longname LIKE \'%${searchString.uppercase()}%\' OR water LIKE \'%${searchString.uppercase()}%\'"
+        val result = db.rawQuery(query, null)
+        if (result.moveToFirst()) {
+            do {
+                var station = StationDb(
+                    uuid = result.getString(0),
+                    longname = result.getString(1),
+                    km = result.getString(2).toDouble(),
+                    longitude = result.getString(3).toDouble(),
+                    latitude = result.getString(4).toDouble(),
+                    water = result.getString(5),
+                    timestamp = result.getString(6),
+                    value = result.getString(7).toDouble(),
+                    trend = result.getString(8).toInt(),
+                    selected = result.getString(9).toBoolean()
+                )
+                list.add(station)
+            } while (result.moveToNext())
         }
 
+        result.close()
+
+        searchedStations.clear()
+        searchedStations.addAll(list)
     }
 
 

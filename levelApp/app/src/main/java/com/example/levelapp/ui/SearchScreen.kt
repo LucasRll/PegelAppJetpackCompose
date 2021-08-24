@@ -38,20 +38,37 @@ fun SearchScreen(navController: NavController, db: DatabaseHandler) {
             .fillMaxSize()
     ) {
         Column {
-            SearchBox()
-            SearchResults(navController, db)
+            SearchBox(navController, db)
+           // SearchResults(navController, db)
         }
     }
 }
 
 
 @Composable
-fun SearchBox() {
-    var search = rememberSaveable { mutableStateOf("") }
+fun SearchBox(navController: NavController, db: DatabaseHandler) {
+    var searchString = rememberSaveable { mutableStateOf("") }
+    var searchBoolean = rememberSaveable { mutableStateOf(false) }
+
+    val api = Requests()
+    addData(api, db)
+    val stationsApiRemember = remember { db.stationsDb }
+    val stationsDbSearchRemember = remember { db.searchedStations }
 
     TextField(
-        value = search.value,
-        onValueChange = { search.value = it },
+        value = searchString.value,
+        onValueChange = {
+            /**
+             * Wenn Value vorhanden boolean auf true, sonst false und alles wird angezeigt
+             */
+            searchString.value = it
+            if (it != "") {
+                searchBoolean.value = true
+                updateSearch(db, it)
+            } else {
+                searchBoolean.value = false
+            }
+                        },
         colors = TextFieldDefaults.textFieldColors(
             backgroundColor = Color.White
         ),
@@ -73,9 +90,107 @@ fun SearchBox() {
             )
         }
     )
+
+    /**
+     * Nicht schön aber selten, je nachdem ob gesucht wird, wird eine andere List angezeigt
+     */
+    if (!searchBoolean.value) {
+
+        Box(
+            modifier = Modifier
+                //.padding(start = 25.dp, end = 25.dp)
+                .fillMaxWidth()
+        ) {
+            LazyColumn(
+                contentPadding = PaddingValues(start = 25.dp, end = 25.dp, top = 25.dp)
+            ) {
+                items(stationsApiRemember) {
+                    Box(
+                        modifier = Modifier
+                            .padding(bottom = 5.dp)
+                            .clip(RoundedCornerShape(15.dp))
+                            .background(boxBlue)
+                            .fillMaxWidth()
+                            .clickable {
+                                updateSelected(it, db)
+                                if (db.getSelected().uuid == "") {
+                                    navController.navigate(Screen.HomeScreen.route)
+                                } else {
+                                    navController.popBackStack()
+                                }
+                            }
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .padding(25.dp)
+                        ) {
+                            Text(
+                                text = StringUtil.toLeadingCapitalLetterName(it.longname),
+                                style = MaterialTheme.typography.h2,
+                                color = Color.White,
+                                modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 5.dp)
+                            )
+                            Text(
+                                text = StringUtil.waterAndKilometer(it.water, it.km),
+                                style = MaterialTheme.typography.body1,
+                                color = Color.White,
+                            )
+
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        Box(
+            modifier = Modifier
+                //.padding(start = 25.dp, end = 25.dp)
+                .fillMaxWidth()
+        ) {
+            LazyColumn(
+                contentPadding = PaddingValues(start = 25.dp, end = 25.dp, top = 25.dp)
+            ) {
+                items(stationsDbSearchRemember) {
+                    Box(
+                        modifier = Modifier
+                            .padding(bottom = 5.dp)
+                            .clip(RoundedCornerShape(15.dp))
+                            .background(boxBlue)
+                            .fillMaxWidth()
+                            .clickable {
+                                updateSelected(it, db)
+                                if (db.getSelected().uuid == "") {
+                                    navController.navigate(Screen.HomeScreen.route)
+                                } else {
+                                    navController.popBackStack()
+                                }
+                            }
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .padding(25.dp)
+                        ) {
+                            Text(
+                                text = StringUtil.toLeadingCapitalLetterName(it.longname),// todo
+                                style = MaterialTheme.typography.h2,
+                                color = Color.White,
+                                modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 5.dp)
+                            )
+                            Text(
+                                text = StringUtil.waterAndKilometer(it.water, it.km),// todo
+                                style = MaterialTheme.typography.body1,
+                                color = Color.White,
+                            )
+
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
-@Composable
+/*@Composable
 fun SearchResults(navController: NavController, db: DatabaseHandler) {
 
     val api = Requests()
@@ -126,7 +241,7 @@ fun SearchResults(navController: NavController, db: DatabaseHandler) {
             }
         }
     }
-}
+}*/
 
 /**
  * Adds all Stations to the Search Screen
@@ -134,12 +249,19 @@ fun SearchResults(navController: NavController, db: DatabaseHandler) {
 fun addData(api: Requests, db: DatabaseHandler) {
     GlobalScope.launch {
         api.getStations(db)
+        db.readData()
     }
 }
 
 fun updateSelected(stationDb: StationDb, db: DatabaseHandler) {
     GlobalScope.launch {
         db.updateSelected(stationDb)
+    }
+}
+
+fun updateSearch(db: DatabaseHandler, search: String) {
+    GlobalScope.launch {
+        db.fuzzySearch(search)
     }
 }
 
