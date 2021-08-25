@@ -12,9 +12,19 @@ class DatabaseHandler(context: Context) : SQLiteOpenHelper(context, "PegelDB", n
 
     var selectedStationDb = mutableStateOf(StationDb())
 
-    var stationsDb = mutableStateListOf(StationDb())
+    var stationsDb = mutableStateListOf(
+        StationDb(),
+        StationDb(),
+        StationDb(),
+        StationDb(),
+        StationDb(),
+        StationDb(),
+        StationDb()
+    )
 
-    var searchedStations = mutableStateListOf(StationDb())
+    var searchedStations = mutableStateListOf<StationDb>()
+
+    var nearestStations = mutableStateListOf<StationDb>()
 
     override fun onCreate(db: SQLiteDatabase?) {
         db?.execSQL("CREATE TABLE Station (uuid char(36) NOT NULL,longname varchar(100),km DOUBLE,longitude DOUBLE,latitude DOUBLE,water varchar(50), timestamp varchar(100), value DOUBLE, trend INT, selected varchar(10))")
@@ -50,22 +60,6 @@ class DatabaseHandler(context: Context) : SQLiteOpenHelper(context, "PegelDB", n
         }
     }
 
-    fun insertStation(stationDb: StationDb) {
-        val db = this.writableDatabase
-        var cv = ContentValues()
-        cv.put("uuid", stationDb.uuid)
-        cv.put("longname", stationDb.longname)
-        cv.put("km", stationDb.km)
-        cv.put("longitude", stationDb.longitude)
-        cv.put("latitude", stationDb.latitude)
-        cv.put("water", stationDb.water)
-        cv.put("timestamp", stationDb.timestamp)
-        cv.put("value", stationDb.value)
-        cv.put("trend", stationDb.trend)
-        cv.put("selected", stationDb.selected.toString())
-
-        db.insert("Station", null, cv)
-    }
 
     fun readData(): MutableList<StationDb> {
         var list: MutableList<StationDb> = ArrayList()
@@ -161,11 +155,22 @@ class DatabaseHandler(context: Context) : SQLiteOpenHelper(context, "PegelDB", n
         db.execSQL(query)
     }
 
+
+    fun updateMeasurement(stationDb: StationDb) {
+        val db = this.writableDatabase
+        val query =
+            "UPDATE Station SET timestamp=\'${stationDb.timestamp}\',value='${stationDb.value}',trend='${stationDb.trend}'  WHERE uuid=\'${stationDb.uuid}\'"
+        db.execSQL(query)
+        getSelected()
+
+    }
+
     fun fuzzySearch(searchString: String) {
         val db = this.writableDatabase
         var list: MutableList<StationDb> = ArrayList()
 
-        val query = "SELECT * FROM Station WHERE longname LIKE \'%${searchString.uppercase()}%\' OR water LIKE \'%${searchString.uppercase()}%\'"
+        val query =
+            "SELECT * FROM Station WHERE longname LIKE \'%${searchString.uppercase()}%\' OR water LIKE \'%${searchString.uppercase()}%\'"
         val result = db.rawQuery(query, null)
         if (result.moveToFirst()) {
             do {

@@ -13,9 +13,9 @@ private val DarkColorPalette = darkColors(
 )
 
 private val LightColorPalette = lightColors(
-    primary = Purple500,
-    primaryVariant = Purple700,
-    secondary = Teal200
+    primary = boxBlue,
+    primaryVariant = boxDarkBlue,
+    secondary = textDark
 
     /* Other default colors to override
     background = Color.White,
@@ -32,6 +32,7 @@ fun LevelAppTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composab
     MaterialTheme(
         typography = Typography,
         shapes = Shapes,
-        content = content
+        content = content,
+        colors = LightColorPalette
     )
 }

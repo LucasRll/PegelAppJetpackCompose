@@ -72,4 +72,9 @@ dependencies {
     //retrofit2
     implementation 'com.squareup.retrofit2:retrofit:2.7.1'
     implementation 'com.squareup.retrofit2:converter-gson:2.0.0'
+
+    implementation "com.google.accompanist:accompanist-systemuicontroller:0.17.0"
+    implementation "com.google.accompanist:accompanist-swiperefresh:0.17.0"
+    implementation "com.google.accompanist:accompanist-placeholder-material:0.17.0"
+
 }

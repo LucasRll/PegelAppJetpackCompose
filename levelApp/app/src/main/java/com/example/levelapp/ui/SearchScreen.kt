@@ -26,8 +26,12 @@ import com.example.levelapp.database.data.StationDb
 import com.example.levelapp.ui.theme.background
 import com.example.levelapp.ui.theme.boxBlue
 import com.example.levelapp.util.StringUtil
+import com.google.accompanist.placeholder.PlaceholderHighlight
+import com.google.accompanist.placeholder.fade
+import com.google.accompanist.placeholder.placeholder
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import com.example.levelapp.ui.theme.*
 
 
 @Composable
@@ -39,7 +43,7 @@ fun SearchScreen(navController: NavController, db: DatabaseHandler) {
     ) {
         Column {
             SearchBox(navController, db)
-           // SearchResults(navController, db)
+            // SearchResults(navController, db)
         }
     }
 }
@@ -52,7 +56,7 @@ fun SearchBox(navController: NavController, db: DatabaseHandler) {
 
     val api = Requests()
     addData(api, db)
-    val stationsApiRemember = remember { db.stationsDb }
+    val stationsDbRemember = remember { db.stationsDb }
     val stationsDbSearchRemember = remember { db.searchedStations }
 
     TextField(
@@ -68,7 +72,7 @@ fun SearchBox(navController: NavController, db: DatabaseHandler) {
             } else {
                 searchBoolean.value = false
             }
-                        },
+        },
         colors = TextFieldDefaults.textFieldColors(
             backgroundColor = Color.White
         ),
@@ -104,7 +108,7 @@ fun SearchBox(navController: NavController, db: DatabaseHandler) {
             LazyColumn(
                 contentPadding = PaddingValues(start = 25.dp, end = 25.dp, top = 25.dp)
             ) {
-                items(stationsApiRemember) {
+                items(stationsDbRemember) {
                     Box(
                         modifier = Modifier
                             .padding(bottom = 5.dp)
@@ -112,13 +116,14 @@ fun SearchBox(navController: NavController, db: DatabaseHandler) {
                             .background(boxBlue)
                             .fillMaxWidth()
                             .clickable {
-                                updateSelected(it, db)
-                                if (db.getSelected().uuid == "") {
-                                    navController.navigate(Screen.HomeScreen.route)
-                                } else {
-                                    navController.popBackStack()
-                                }
-                            }
+                                onClick(it, db, navController, api)
+                            }.placeholder(
+                                visible = stationsDbRemember[0].uuid == "",
+                                color = boxLightBlue,
+                                highlight = PlaceholderHighlight.fade(
+                                    highlightColor = boxBlue,
+                                )
+                            )
                     ) {
                         Column(
                             modifier = Modifier
@@ -158,12 +163,7 @@ fun SearchBox(navController: NavController, db: DatabaseHandler) {
                             .background(boxBlue)
                             .fillMaxWidth()
                             .clickable {
-                                updateSelected(it, db)
-                                if (db.getSelected().uuid == "") {
-                                    navController.navigate(Screen.HomeScreen.route)
-                                } else {
-                                    navController.popBackStack()
-                                }
+                                onClick(it, db, navController, api)
                             }
                     ) {
                         Column(
@@ -253,8 +253,9 @@ fun addData(api: Requests, db: DatabaseHandler) {
     }
 }
 
-fun updateSelected(stationDb: StationDb, db: DatabaseHandler) {
+fun updateSelected(stationDb: StationDb, db: DatabaseHandler, api: Requests) {
     GlobalScope.launch {
+        db.updateMeasurement(api.getMeasurement(stationDb))
         db.updateSelected(stationDb)
     }
 }
@@ -263,5 +264,21 @@ fun updateSearch(db: DatabaseHandler, search: String) {
     GlobalScope.launch {
         db.fuzzySearch(search)
     }
+}
+
+fun updateMeasurement(api: Requests, db: DatabaseHandler, stationDb: StationDb) {
+    GlobalScope.launch {
+        api.getMeasurement(stationDb)
+    }
+}
+
+fun onClick(
+    stationDb: StationDb,
+    db: DatabaseHandler,
+    navController: NavController,
+    api: Requests
+) {
+    updateSelected(stationDb, db, api)
+    navController.navigate(Screen.HomeScreen.route)
 }
 

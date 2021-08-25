@@ -1,8 +1,10 @@
 package com.example.levelapp.ui
 
+import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -16,6 +18,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.levelapp.R
 import com.example.levelapp.Screen
@@ -24,22 +29,58 @@ import com.example.levelapp.database.DatabaseHandler
 import com.example.levelapp.database.data.StationDb
 import com.example.levelapp.ui.theme.*
 import com.example.levelapp.util.StringUtil
+import com.google.accompanist.placeholder.PlaceholderHighlight
+import com.google.accompanist.placeholder.fade
+import com.google.accompanist.placeholder.placeholder
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+
+class MyViewModel : ViewModel() {
+    private val _isRefreshing = MutableStateFlow(false)
+
+    val isRefreshing: StateFlow<Boolean>
+        get() = _isRefreshing.asStateFlow()
+
+    fun refresh(db: DatabaseHandler) {
+        // This doesn't handle multiple 'refreshing' tasks, don't use this
+        viewModelScope.launch {
+            // A fake 2 second 'refresh'
+            _isRefreshing.emit(true)
+            val api = Requests()
+            db.updateMeasurement(api.getMeasurement(db.getSelected()))
+            _isRefreshing.emit(false)
+        }
+    }
+}
 
 @Composable
 fun HomeScreen(navController: NavController, db: DatabaseHandler) {
-    Box(
-        modifier = Modifier
-            .background(background)
-            .fillMaxSize()
-            .verticalScroll(state = ScrollState(0), enabled = true)
+
+    val viewModel: MyViewModel = viewModel()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+
+    SwipeRefresh(
+        state = rememberSwipeRefreshState(isRefreshing),
+        onRefresh = { viewModel.refresh(db) },
     ) {
-        Column {
-            headerSection(navController)
-            mainView(db)
-            nearestStations(db)
-            rewind()
+        Box(
+            modifier = Modifier
+                .background(background)
+                .fillMaxSize()
+                .verticalScroll(state = ScrollState(0), enabled = true)
+        ) {
+            Column {
+                headerSection(navController)
+                mainView(db)
+              nearestStations(db)
+                rewind()
+            }
         }
     }
 
@@ -79,22 +120,12 @@ fun headerSection(navController: NavController) {
     }
 }
 
-fun updateSelectedStation(db: DatabaseHandler): StationDb {
-    var station = db.getSelected()
-    while (station.longname == "") {
-        station = db.getSelected()
-    }
-    return station
-}
-
-/**
- * Adds all Stations to the Search Screen
- */
 fun getSelected(db: DatabaseHandler) {
     GlobalScope.launch {
         db.getSelected()
     }
 }
+
 
 @Composable
 fun mainView(db: DatabaseHandler) {
@@ -119,7 +150,7 @@ fun mainView(db: DatabaseHandler) {
                 .padding(25.dp)
         ) {
             Text(
-                text = StringUtil.changeDateFormat(stationRemember.value.timestamp),// todo
+                text = StringUtil.changeDateFormat(stationRemember.value.timestamp),
                 style = MaterialTheme.typography.body1,
                 color = Color.White,
                 modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 5.dp)
@@ -131,7 +162,10 @@ fun mainView(db: DatabaseHandler) {
                 modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 5.dp)
             )
             Text(
-                text = StringUtil.waterAndKilometer(stationRemember.value.water, stationRemember.value.km),
+                text = StringUtil.waterAndKilometer(
+                    stationRemember.value.water,
+                    stationRemember.value.km
+                ),
                 style = MaterialTheme.typography.body1,
                 color = Color.White,
                 modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 20.dp)
@@ -145,7 +179,7 @@ fun mainView(db: DatabaseHandler) {
             ) {
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
-                        text = stationRemember.value.value.toString(), //todo
+                        text = stationRemember.value.value.toString(),
                         style = MaterialTheme.typography.h3,
                         color = Color.White
                     )
@@ -157,49 +191,90 @@ fun mainView(db: DatabaseHandler) {
                         modifier = Modifier.padding(5.dp, 10.dp)
                     )
                 }
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_arrow),
-                    contentDescription = "search",
-                    Modifier
-                        .clip(RoundedCornerShape(45.dp))
-                        .background(Color.White)
-                        .padding(10.dp)
-                        .size(30.dp)
-                        .rotate(45.0F) //todo
+                if (stationRemember.value.trend == 1) { //todo kein Kreis
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_arrow),
+                        contentDescription = "search",
+                        Modifier
+                            .clip(RoundedCornerShape(45.dp))
+                            .background(Color.White)
+                            .padding(10.dp)
+                            .size(30.dp)
+                            .rotate(315.0F)
+                    )
+                } else if (stationRemember.value.trend == -1) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_arrow),
+                        contentDescription = "search",
+                        Modifier
+                            .clip(RoundedCornerShape(45.dp))
+                            .background(Color.White)
+                            .padding(10.dp)
+                            .size(30.dp)
+                            .rotate(45.0F)
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_arrow),
+                        contentDescription = "search",
+                        Modifier
+                            .clip(RoundedCornerShape(45.dp))
+                            .background(Color.White)
+                            .padding(10.dp)
+                            .size(30.dp)
 
-                )
+                    )
+                }
             }
         }
     }
+
 }
+
+fun getNearest(db: DatabaseHandler) {
+        GlobalScope.launch {
+            val api = Requests()
+            api.getNearestStations(db.selectedStationDb.value, db)
+        }
+}
+
+
 
 @Composable
 fun nearestStations(db: DatabaseHandler) {
-    //val nearestStationsRemember = remember { api.stations }
+    getNearest(db)
+    val nearestStationsRemember = remember { db.nearestStations }
     Column(
         modifier = Modifier
             .padding(bottom = 25.dp)
     ) {
         Text(
-            text = "Stationen aus der Umgebung",
+            text = "Pegel aus der Umgebung",
             style = MaterialTheme.typography.h2,
             color = textDark,
             modifier = Modifier.padding(start = 25.dp, end = 25.dp)
         )
         LazyRow(contentPadding = PaddingValues(start = 25.dp, end = 25.dp, top = 20.dp)) {
-            items(4) {
+            items(nearestStationsRemember) {
                 Box(
                     modifier = Modifier
                         .padding(end = 15.dp)
                         .clip(RoundedCornerShape(15.dp))
                         .background(boxBlue)
                         .clickable { /*todo*/ }
+                        .placeholder(
+                            visible = nearestStationsRemember.size == 0,//todo
+                            color = boxLightBlue,
+                            highlight = PlaceholderHighlight.fade(
+                                highlightColor = boxBlue,
+                            )
+                        )
                 ) {
                     Column(
                         modifier = Modifier.padding(15.dp)
                     ) {
                         Text(
-                            text = "Schönebeck", //todo
+                            text = StringUtil.toLeadingCapitalLetterName(it.longname),
                             style = MaterialTheme.typography.body1,
                             color = Color.White,
                             fontWeight = FontWeight.Normal,
@@ -208,7 +283,7 @@ fun nearestStations(db: DatabaseHandler) {
                         )
 
                         Text(
-                            text = "203.0", // todo
+                            text = it.value.toString(),
                             style = MaterialTheme.typography.body1,
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
