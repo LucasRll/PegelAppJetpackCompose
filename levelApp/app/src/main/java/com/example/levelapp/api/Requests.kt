@@ -3,6 +3,7 @@ package com.example.levelapp.api
 import android.provider.ContactsContract
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
+import com.example.levelapp.AppDataModel
 import com.example.levelapp.api.data.StationsItem
 import com.example.levelapp.database.DatabaseHandler
 import com.example.levelapp.database.data.StationDb
@@ -78,11 +79,7 @@ class Requests {
         return stationDb
     }
 
-    suspend fun getNearestStations(
-        stationDb: StationDb,
-        db: DatabaseHandler
-    ): MutableList<StationDb> {
-        db.nearestStations.clear()
+    suspend fun getNearestStations(appData: AppDataModel): MutableList<StationDb> {
         var list: MutableList<StationDb> = ArrayList()
         val api = Retrofit.Builder()
             .baseUrl(BASE_URL)
@@ -91,10 +88,9 @@ class Requests {
             .create(ApiRequests::class.java)
 
         try {
-            val response = api.getNearestStations(stationDb.water, stationDb.km).awaitResponse()
+            val response = api.getNearestStations(appData.db.getSelected().water, appData.db.getSelected().km).awaitResponse()
             if (response.isSuccessful) {
                 val data = response.body()!!
-               // Log.println(Log.ERROR, "data", data.toString())
                 for (station: StationsItem in data) {
                     val neededTimeSeries = 0
                     for (element in station.timeseries) {
@@ -120,7 +116,10 @@ class Requests {
         } catch (e: Exception) {
             Log.println(Log.ERROR, "Connection failed", e.toString())
         }
-        db.nearestStations.addAll(list)
+        list.distinct()
+        for (item in list) {
+            println(item.longname)
+        }
         return list
     }
 

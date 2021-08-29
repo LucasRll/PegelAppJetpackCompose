@@ -10,21 +10,6 @@ import com.example.levelapp.database.data.StationDb
 
 class DatabaseHandler(context: Context) : SQLiteOpenHelper(context, "PegelDB", null, 1) {
 
-    var selectedStationDb = mutableStateOf(StationDb())
-
-    var stationsDb = mutableStateListOf(
-        StationDb(),
-        StationDb(),
-        StationDb(),
-        StationDb(),
-        StationDb(),
-        StationDb(),
-        StationDb()
-    )
-
-    var searchedStations = mutableStateListOf<StationDb>()
-
-    var nearestStations = mutableStateListOf<StationDb>()
 
     override fun onCreate(db: SQLiteDatabase?) {
         db?.execSQL("CREATE TABLE Station (uuid char(36) NOT NULL,longname varchar(100),km DOUBLE,longitude DOUBLE,latitude DOUBLE,water varchar(50), timestamp varchar(100), value DOUBLE, trend INT, selected varchar(10))")
@@ -86,31 +71,10 @@ class DatabaseHandler(context: Context) : SQLiteOpenHelper(context, "PegelDB", n
         }
 
         result.close()
-        // db.close()
-
-        stationsDb.clear()
-        stationsDb.addAll(list)
 
         return list
     }
 
-    /*fun insertSelected(stationDb: StationDb) {
-        val db = this.writableDatabase
-        val query = "DELETE FROM Station"
-        db.execSQL(query)
-        val values = ContentValues()
-        values.put("uuid", stationDb.uuid)
-        values.put("longname", stationDb.longname)
-        values.put("km", stationDb.km)
-        values.put("longitude", stationDb.longitude)
-        values.put("latitude", stationDb.latitude)
-        values.put("water", stationDb.water)
-        values.put("value", stationDb.value)
-        values.put("trend", stationDb.trend)
-        values.put("selected", stationDb.selected)
-        db.insert("Station", null, values)
-        db.close()
-    }*/
 
     fun getSelected(): StationDb {
         val db = this.writableDatabase
@@ -139,10 +103,8 @@ class DatabaseHandler(context: Context) : SQLiteOpenHelper(context, "PegelDB", n
         result.close()
         //db.close()
         if (list.isNotEmpty()) {
-            selectedStationDb.value = list.first()
             return list.first()
         }
-        selectedStationDb.value = StationDb()
         return StationDb()
     }
 
@@ -151,21 +113,20 @@ class DatabaseHandler(context: Context) : SQLiteOpenHelper(context, "PegelDB", n
         val querySelected = "UPDATE Station SET selected=\'false\'"
         db.execSQL(querySelected)
         val query = "UPDATE Station SET selected=\'true\' WHERE uuid=\'${stationDb.uuid}\'"
-        selectedStationDb.value = stationDb
         db.execSQL(query)
     }
 
 
-    fun updateMeasurement(stationDb: StationDb) {
+    fun updateMeasurement(stationDb: StationDb): StationDb {
         val db = this.writableDatabase
         val query =
             "UPDATE Station SET timestamp=\'${stationDb.timestamp}\',value='${stationDb.value}',trend='${stationDb.trend}'  WHERE uuid=\'${stationDb.uuid}\'"
         db.execSQL(query)
-        getSelected()
+        return getSelected()
 
     }
 
-    fun fuzzySearch(searchString: String) {
+    fun fuzzySearch(searchString: String): MutableList<StationDb> {
         val db = this.writableDatabase
         var list: MutableList<StationDb> = ArrayList()
 
@@ -192,8 +153,7 @@ class DatabaseHandler(context: Context) : SQLiteOpenHelper(context, "PegelDB", n
 
         result.close()
 
-        searchedStations.clear()
-        searchedStations.addAll(list)
+        return list
     }
 
 

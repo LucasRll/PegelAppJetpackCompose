@@ -22,6 +22,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.levelapp.AppDataModel
 import com.example.levelapp.R
 import com.example.levelapp.Screen
 import com.example.levelapp.api.Requests
@@ -47,27 +48,27 @@ class MyViewModel : ViewModel() {
     val isRefreshing: StateFlow<Boolean>
         get() = _isRefreshing.asStateFlow()
 
-    fun refresh(db: DatabaseHandler) {
+    fun refresh(appData: AppDataModel) {
         // This doesn't handle multiple 'refreshing' tasks, don't use this
         viewModelScope.launch {
             // A fake 2 second 'refresh'
             _isRefreshing.emit(true)
-            val api = Requests()
-            db.updateMeasurement(api.getMeasurement(db.getSelected()))
+            appData.selectedStationDb.value =
+                appData.db.updateMeasurement(appData.api.getMeasurement(appData.db.getSelected()))
             _isRefreshing.emit(false)
         }
     }
 }
 
 @Composable
-fun HomeScreen(navController: NavController, db: DatabaseHandler) {
+fun HomeScreen(navController: NavController, appData: AppDataModel) {
 
     val viewModel: MyViewModel = viewModel()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
 
     SwipeRefresh(
         state = rememberSwipeRefreshState(isRefreshing),
-        onRefresh = { viewModel.refresh(db) },
+        onRefresh = { viewModel.refresh(appData) },
     ) {
         Box(
             modifier = Modifier
@@ -77,8 +78,8 @@ fun HomeScreen(navController: NavController, db: DatabaseHandler) {
         ) {
             Column {
                 headerSection(navController)
-                mainView(db)
-              nearestStations(db)
+                mainView(appData)
+                nearestStations(appData)
                 rewind()
             }
         }
@@ -120,17 +121,17 @@ fun headerSection(navController: NavController) {
     }
 }
 
-fun getSelected(db: DatabaseHandler) {
+fun getSelected(appData: AppDataModel) {
     GlobalScope.launch {
-        db.getSelected()
+        appData.db.getSelected()
     }
 }
 
 
 @Composable
-fun mainView(db: DatabaseHandler) {
-    getSelected(db)
-    val stationRemember = remember { db.selectedStationDb }
+fun mainView(appData: AppDataModel) {
+    getSelected(appData)
+    val stationRemember = remember { appData.selectedStationDb }
     Box(
         modifier = Modifier
             .padding(start = 25.dp, end = 25.dp, bottom = 25.dp)
@@ -191,37 +192,40 @@ fun mainView(db: DatabaseHandler) {
                         modifier = Modifier.padding(5.dp, 10.dp)
                     )
                 }
-                if (stationRemember.value.trend == 1) { //todo kein Kreis
+                if (stationRemember.value.trend == 1) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_arrow),
-                        contentDescription = "search",
-                        Modifier
+                        painter = painterResource(id = R.drawable.ic_arrow_white),
+                        contentDescription = "trend",
+                        tint = Color.White,
+                        modifier = Modifier
                             .clip(RoundedCornerShape(45.dp))
-                            .background(Color.White)
+                            //                            .background(Color.White)
                             .padding(10.dp)
-                            .size(30.dp)
+                            .size(50.dp)
                             .rotate(315.0F)
                     )
                 } else if (stationRemember.value.trend == -1) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_arrow),
-                        contentDescription = "search",
-                        Modifier
+                        painter = painterResource(id = R.drawable.ic_arrow_white),
+                        contentDescription = "trend",
+                        tint = Color.White,
+                        modifier = Modifier
                             .clip(RoundedCornerShape(45.dp))
-                            .background(Color.White)
+                            //                            .background(Color.White)
                             .padding(10.dp)
-                            .size(30.dp)
+                            .size(50.dp)
                             .rotate(45.0F)
                     )
                 } else {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_arrow),
-                        contentDescription = "search",
-                        Modifier
+                        painter = painterResource(id = R.drawable.ic_arrow_white),
+                        contentDescription = "trend",
+                        tint = Color.White,
+                        modifier = Modifier
                             .clip(RoundedCornerShape(45.dp))
-                            .background(Color.White)
+                            //                            .background(Color.White)
                             .padding(10.dp)
-                            .size(30.dp)
+                            .size(50.dp)
 
                     )
                 }
@@ -231,19 +235,18 @@ fun mainView(db: DatabaseHandler) {
 
 }
 
-fun getNearest(db: DatabaseHandler) {
-        GlobalScope.launch {
-            val api = Requests()
-            api.getNearestStations(db.selectedStationDb.value, db)
-        }
+fun getNearest(appData: AppDataModel) {
+    GlobalScope.launch {
+        appData.nearestStations.clear()
+        appData.nearestStations.addAll(appData.api.getNearestStations(appData))
+    }
 }
 
 
-
 @Composable
-fun nearestStations(db: DatabaseHandler) {
-    getNearest(db)
-    val nearestStationsRemember = remember { db.nearestStations }
+fun nearestStations(appData: AppDataModel) {
+    getNearest(appData)
+    val nearestStationsRemember = remember { appData.nearestStations }
     Column(
         modifier = Modifier
             .padding(bottom = 25.dp)

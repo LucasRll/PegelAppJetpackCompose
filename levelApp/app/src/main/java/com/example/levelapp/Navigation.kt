@@ -9,15 +9,15 @@ import com.example.levelapp.ui.HomeScreen
 import com.example.levelapp.ui.SearchScreen
 
 @Composable
-fun Navigation(db: DatabaseHandler) {
+fun Navigation(appData: AppDataModel) {
     val navController = rememberNavController()
 //    if (db.readData().size == 1 || db.getSelected().uuid == "") {
         NavHost(navController = navController, startDestination = Screen.SearchScreen.route) {
             composable(route = Screen.HomeScreen.route) {
-                HomeScreen(navController, db)
+                HomeScreen(navController, appData)
             }
             composable(route = Screen.SearchScreen.route) {
-                SearchScreen(navController, db)
+                SearchScreen(navController, appData)
             }
         }
    /* } else {

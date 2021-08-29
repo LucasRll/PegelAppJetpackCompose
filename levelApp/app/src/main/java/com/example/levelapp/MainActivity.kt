@@ -18,6 +18,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         var db = DatabaseHandler(this)
+        var appData = AppDataModel(db)
         setContent {
             // Remember a SystemUiController
             val systemUiController = rememberSystemUiController()
@@ -29,7 +30,7 @@ class MainActivity : ComponentActivity() {
                     darkIcons = true)
             }
             LevelAppTheme() {
-                Navigation(db)
+                Navigation(appData)
             }
 
         }

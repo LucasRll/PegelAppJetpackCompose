@@ -16,8 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.levelapp.AppDataModel
 import com.example.levelapp.R
 import com.example.levelapp.Screen
 import com.example.levelapp.api.Requests
@@ -32,17 +34,17 @@ import com.google.accompanist.placeholder.placeholder
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import com.example.levelapp.ui.theme.*
-
+import com.google.accompanist.placeholder.shimmer
 
 @Composable
-fun SearchScreen(navController: NavController, db: DatabaseHandler) {
+fun SearchScreen(navController: NavController, appData: AppDataModel) {
     Box(
         modifier = Modifier
             .background(background)
             .fillMaxSize()
     ) {
         Column {
-            SearchBox(navController, db)
+            SearchBox(navController, appData)
             // SearchResults(navController, db)
         }
     }
@@ -50,14 +52,14 @@ fun SearchScreen(navController: NavController, db: DatabaseHandler) {
 
 
 @Composable
-fun SearchBox(navController: NavController, db: DatabaseHandler) {
+fun SearchBox(navController: NavController, appData: AppDataModel) {
     var searchString = rememberSaveable { mutableStateOf("") }
     var searchBoolean = rememberSaveable { mutableStateOf(false) }
 
     val api = Requests()
-    addData(api, db)
-    val stationsDbRemember = remember { db.stationsDb }
-    val stationsDbSearchRemember = remember { db.searchedStations }
+    addData(api, appData)
+    val stationsDbRemember = remember { appData.stationsDb }
+    val stationsDbSearchRemember = remember { appData.searchedStations }
 
     TextField(
         value = searchString.value,
@@ -68,7 +70,7 @@ fun SearchBox(navController: NavController, db: DatabaseHandler) {
             searchString.value = it
             if (it != "") {
                 searchBoolean.value = true
-                updateSearch(db, it)
+                updateSearch(appData, it)
             } else {
                 searchBoolean.value = false
             }
@@ -116,12 +118,13 @@ fun SearchBox(navController: NavController, db: DatabaseHandler) {
                             .background(boxBlue)
                             .fillMaxWidth()
                             .clickable {
-                                onClick(it, db, navController, api)
-                            }.placeholder(
+                                onClick(it, appData, navController)
+                            }
+                            .placeholder(
                                 visible = stationsDbRemember[0].uuid == "",
                                 color = boxLightBlue,
                                 highlight = PlaceholderHighlight.fade(
-                                    highlightColor = boxBlue,
+                                    highlightColor = boxLightBlueShimmer,
                                 )
                             )
                     ) {
@@ -163,7 +166,7 @@ fun SearchBox(navController: NavController, db: DatabaseHandler) {
                             .background(boxBlue)
                             .fillMaxWidth()
                             .clickable {
-                                onClick(it, db, navController, api)
+                                onClick(it, appData, navController)
                             }
                     ) {
                         Column(
@@ -246,23 +249,28 @@ fun SearchResults(navController: NavController, db: DatabaseHandler) {
 /**
  * Adds all Stations to the Search Screen
  */
-fun addData(api: Requests, db: DatabaseHandler) {
+fun addData(api: Requests, appData: AppDataModel) {
     GlobalScope.launch {
-        api.getStations(db)
-        db.readData()
+        api.getStations(appData.db)
+        appData.stationsDb.addAll(appData.db.readData())
     }
 }
 
-fun updateSelected(stationDb: StationDb, db: DatabaseHandler, api: Requests) {
+fun updateSelected(stationDb: StationDb, appData: AppDataModel) {
     GlobalScope.launch {
-        db.updateMeasurement(api.getMeasurement(stationDb))
-        db.updateSelected(stationDb)
+        appData.db.updateMeasurement(appData.api.getMeasurement(stationDb))
+        appData.db.updateSelected(stationDb)
+        appData.selectedStationDb.value = stationDb
     }
 }
 
-fun updateSearch(db: DatabaseHandler, search: String) {
+fun updateSearch(appData: AppDataModel, search: String) {
     GlobalScope.launch {
-        db.fuzzySearch(search)
+        val result = appData.db.fuzzySearch(search)
+        if (result.isNotEmpty()) {
+            appData.searchedStations.clear()
+            appData.searchedStations.addAll(result)
+        }
     }
 }
 
@@ -274,11 +282,10 @@ fun updateMeasurement(api: Requests, db: DatabaseHandler, stationDb: StationDb) 
 
 fun onClick(
     stationDb: StationDb,
-    db: DatabaseHandler,
-    navController: NavController,
-    api: Requests
+    appData: AppDataModel,
+    navController: NavController
 ) {
-    updateSelected(stationDb, db, api)
+    updateSelected(stationDb, appData)
     navController.navigate(Screen.HomeScreen.route)
 }
 
