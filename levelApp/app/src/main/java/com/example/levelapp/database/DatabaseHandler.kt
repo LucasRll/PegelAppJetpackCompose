@@ -50,7 +50,7 @@ class DatabaseHandler(context: Context) : SQLiteOpenHelper(context, "PegelDB", n
         var list: MutableList<StationDb> = ArrayList()
 
         val db = this.writableDatabase
-        val query = "SELECT * FROM Station"
+        val query = "SELECT DISTINCT * FROM Station"
         val result = db.rawQuery(query, null)
         if (result.moveToFirst()) {
             do {
@@ -131,7 +131,7 @@ class DatabaseHandler(context: Context) : SQLiteOpenHelper(context, "PegelDB", n
         var list: MutableList<StationDb> = ArrayList()
 
         val query =
-            "SELECT * FROM Station WHERE longname LIKE \'%${searchString.uppercase()}%\' OR water LIKE \'%${searchString.uppercase()}%\'"
+            "SELECT DISTINCT * FROM Station WHERE longname LIKE \'%${searchString.uppercase()}%\' OR water LIKE \'%${searchString.uppercase()}%\'"
         val result = db.rawQuery(query, null)
         if (result.moveToFirst()) {
             do {

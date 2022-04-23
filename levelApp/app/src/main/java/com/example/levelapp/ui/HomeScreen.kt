@@ -1,13 +1,21 @@
 package com.example.levelapp.ui
 
-import android.util.Log
-import androidx.compose.foundation.*
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,8 +33,6 @@ import androidx.navigation.NavController
 import com.example.levelapp.AppDataModel
 import com.example.levelapp.R
 import com.example.levelapp.Screen
-import com.example.levelapp.api.Requests
-import com.example.levelapp.database.DatabaseHandler
 import com.example.levelapp.database.data.StationDb
 import com.example.levelapp.ui.theme.*
 import com.example.levelapp.util.StringUtil
@@ -36,7 +42,6 @@ import com.google.accompanist.placeholder.placeholder
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -51,7 +56,6 @@ class MyViewModel : ViewModel() {
     fun refresh(appData: AppDataModel) {
         // This doesn't handle multiple 'refreshing' tasks, don't use this
         viewModelScope.launch {
-            // A fake 2 second 'refresh'
             _isRefreshing.emit(true)
             appData.selectedStationDb.value =
                 appData.db.updateMeasurement(appData.api.getMeasurement(appData.db.getSelected()))
@@ -80,7 +84,7 @@ fun HomeScreen(navController: NavController, appData: AppDataModel) {
                 headerSection(navController)
                 mainView(appData)
                 nearestStations(appData)
-                rewind()
+//                rewind()
             }
         }
     }
@@ -236,17 +240,36 @@ fun mainView(appData: AppDataModel) {
 }
 
 fun getNearest(appData: AppDataModel) {
+
     GlobalScope.launch {
-        appData.nearestStations.clear()
-        appData.nearestStations.addAll(appData.api.getNearestStations(appData))
+        // verhindern, dass die ausgewählte Station mit erscheint
+        var apiList = appData.api.getNearestStations(appData)
+        var selected = appData.selectedStationDb.value
+        var toDelete = StationDb()
+        for (station in apiList) {
+            if (station.uuid == selected.uuid) {
+                toDelete = station
+            }
+        }
+        apiList.remove(toDelete)
+        appData.nearestStations.swapList(apiList)
     }
+}
+
+/**
+ * clears and adds new list, so there is only one recomposing
+ */
+fun <T> SnapshotStateList<T>.swapList(newList: List<T>) {
+    clear()
+    addAll(newList)
 }
 
 
 @Composable
 fun nearestStations(appData: AppDataModel) {
     getNearest(appData)
-    val nearestStationsRemember = remember { appData.nearestStations }
+//    val nearestStationsRemember = remember { appData.nearestStations }
+    val nearestStationsRemember = appData.nearestStations
     Column(
         modifier = Modifier
             .padding(bottom = 25.dp)
@@ -264,7 +287,9 @@ fun nearestStations(appData: AppDataModel) {
                         .padding(end = 15.dp)
                         .clip(RoundedCornerShape(15.dp))
                         .background(boxBlue)
-                        .clickable { /*todo*/ }
+                        .clickable {
+                            selectNearestStation(it, appData)
+                        }
                         .placeholder(
                             visible = nearestStationsRemember.size == 0,//todo
                             color = boxLightBlue,
@@ -309,6 +334,11 @@ fun nearestStations(appData: AppDataModel) {
     }
 }
 
+fun selectNearestStation(stationDb: StationDb, appData: AppDataModel) {
+    appData.selectedStationDb.value = stationDb
+    getNearest(appData)
+}
+
 @Composable
 fun rewind() {
     Box(
@@ -330,3 +360,4 @@ fun rewind() {
         }
     }
 }
+

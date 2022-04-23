@@ -88,7 +88,9 @@ class Requests {
             .create(ApiRequests::class.java)
 
         try {
-            val response = api.getNearestStations(appData.db.getSelected().water, appData.db.getSelected().km).awaitResponse()
+            val response =
+                api.getNearestStations(appData.db.getSelected().water, appData.db.getSelected().km)
+                    .awaitResponse()
             if (response.isSuccessful) {
                 val data = response.body()!!
                 for (station: StationsItem in data) {
@@ -117,9 +119,9 @@ class Requests {
             Log.println(Log.ERROR, "Connection failed", e.toString())
         }
         list.distinct()
-        for (item in list) {
+        /*for (item in list) {
             println(item.longname)
-        }
+        }*/
         return list
     }
 

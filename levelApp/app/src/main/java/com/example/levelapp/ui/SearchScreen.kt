@@ -261,6 +261,7 @@ fun updateSelected(stationDb: StationDb, appData: AppDataModel) {
         appData.db.updateMeasurement(appData.api.getMeasurement(stationDb))
         appData.db.updateSelected(stationDb)
         appData.selectedStationDb.value = stationDb
+        getNearest(appData)
     }
 }
 
