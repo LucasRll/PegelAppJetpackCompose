@@ -57,8 +57,7 @@ class MyViewModel : ViewModel() {
         // This doesn't handle multiple 'refreshing' tasks, don't use this
         viewModelScope.launch {
             _isRefreshing.emit(true)
-            appData.selectedStationDb.value =
-                appData.db.updateMeasurement(appData.api.getMeasurement(appData.db.getSelected()))
+            appData.setSelectedStation(appData.db.updateMeasurement(appData.api.getMeasurement(appData.db.getSelected())))
             _isRefreshing.emit(false)
         }
     }
@@ -335,7 +334,7 @@ fun nearestStations(appData: AppDataModel) {
 }
 
 fun selectNearestStation(stationDb: StationDb, appData: AppDataModel) {
-    appData.selectedStationDb.value = stationDb
+    appData.setSelectedStation(stationDb)
     getNearest(appData)
 }
 

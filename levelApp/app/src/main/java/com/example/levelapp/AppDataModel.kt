@@ -39,4 +39,11 @@ class AppDataModel(db: DatabaseHandler) {
 
     var nearestStations = mutableStateListOf<StationDb>()
 
+    fun setSelectedStation(station: StationDb) {
+        this.selectedStationDb.value = station
+        this.db.updateSelected(station)
+    }
+
+
+
 }

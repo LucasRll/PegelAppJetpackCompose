@@ -259,8 +259,7 @@ fun addData(api: Requests, appData: AppDataModel) {
 fun updateSelected(stationDb: StationDb, appData: AppDataModel) {
     GlobalScope.launch {
         appData.db.updateMeasurement(appData.api.getMeasurement(stationDb))
-        appData.db.updateSelected(stationDb)
-        appData.selectedStationDb.value = stationDb
+        appData.setSelectedStation(stationDb)
         getNearest(appData)
     }
 }
