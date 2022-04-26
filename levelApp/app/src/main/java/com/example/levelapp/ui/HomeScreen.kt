@@ -11,6 +11,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -32,10 +34,7 @@ import com.example.levelapp.AppDataModel
 import com.example.levelapp.R
 import com.example.levelapp.Screen
 import com.example.levelapp.database.data.StationDb
-import com.example.levelapp.ui.theme.boxBlue
-import com.example.levelapp.ui.theme.boxDarkBlue
-import com.example.levelapp.ui.theme.boxLightBlue
-import com.example.levelapp.ui.theme.textDark
+import com.example.levelapp.ui.theme.*
 import com.example.levelapp.util.StringUtil
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
@@ -122,8 +121,81 @@ fun HomeScreen(navController: NavController, appData: AppDataModel) {
             }
         },
         drawerShape = RoundedCornerShape(0.dp, 20.dp, 20.dp, 0.dp),
+
+        // Inhalt Menü
         drawerContent = {
-            Text(text = "Drawer")
+            Column(
+                modifier = Modifier
+                    .padding(25.dp)
+            ) {
+                val stationRemember = remember { appData.selectedStationDb }
+                Text(
+                    text = StringUtil.toLeadingCapitalLetterName(stationRemember.value.longname),
+                    style = MaterialTheme.typography.h2,
+                    color = textDark,
+                    modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 5.dp)
+                )
+                Text(
+                    text = StringUtil.waterAndKilometer(
+                        stationRemember.value.water,
+                        stationRemember.value.km
+                    ),
+                    style = MaterialTheme.typography.body1,
+                    color = textDark,
+                    modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 20.dp)
+                )
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(0.dp, 0.dp, 15.dp, 0.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.Bottom) {
+                        Text(
+                            text = stationRemember.value.value.toString(),
+                            style = MaterialTheme.typography.h3,
+                            color = textDark
+                        )
+                        Text(
+                            text = "cm",
+                            style = MaterialTheme.typography.body1,
+                            color = textDark,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(5.dp, 10.dp)
+                        )
+                    }
+                }
+            }
+
+
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
+                onClick = { /*TODO*/ },
+                colors = ButtonDefaults.buttonColors(backgroundColor = white),
+            ) {
+                Spacer(modifier = Modifier.width(10.dp))
+                Icon(Icons.Outlined.Settings, contentDescription = "settings")
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(text = "Einstellungen")
+                Spacer(modifier = Modifier.weight(1f))
+            }
+
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
+                onClick = { /*TODO*/ },
+                colors = ButtonDefaults.buttonColors(backgroundColor = white),
+            ) {
+                Spacer(modifier = Modifier.width(10.dp))
+                Icon(Icons.Outlined.Info, contentDescription = "settings")
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(text = "Infos")
+                Spacer(modifier = Modifier.weight(1f))
+            }
         }
     ) {
         val viewModel: MyViewModel = viewModel()

@@ -193,58 +193,6 @@ fun SearchBox(navController: NavController, appData: AppDataModel) {
     }
 }
 
-/*@Composable
-fun SearchResults(navController: NavController, db: DatabaseHandler) {
-
-    val api = Requests()
-    addData(api, db)
-    val stationsRemember = remember { api.stations }
-    Box(
-        modifier = Modifier
-            //.padding(start = 25.dp, end = 25.dp)
-            .fillMaxWidth()
-    ) {
-        LazyColumn(
-            contentPadding = PaddingValues(start = 25.dp, end = 25.dp, top = 25.dp)
-        ) {
-            items(stationsRemember) {
-                Box(
-                    modifier = Modifier
-                        .padding(bottom = 5.dp)
-                        .clip(RoundedCornerShape(15.dp))
-                        .background(boxBlue)
-                        .fillMaxWidth()
-                        .clickable {
-                            updateSelected(it, db)
-                            if (db.getSelected().uuid == "") {
-                                navController.navigate(Screen.HomeScreen.route)
-                            } else {
-                                navController.popBackStack()
-                            }
-                        }
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .padding(25.dp)
-                    ) {
-                        Text(
-                            text = StringUtil.toLeadingCapitalLetterName(it.longname),// todo
-                            style = MaterialTheme.typography.h2,
-                            color = Color.White,
-                            modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 5.dp)
-                        )
-                        Text(
-                            text = StringUtil.waterAndKilometer(it.water, it.km),// todo
-                            style = MaterialTheme.typography.body1,
-                            color = Color.White,
-                        )
-
-                    }
-                }
-            }
-        }
-    }
-}*/
 
 /**
  * Adds all Stations to the Search Screen
