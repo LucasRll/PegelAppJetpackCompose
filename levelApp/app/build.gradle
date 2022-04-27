@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id("com.mikepenz.aboutlibraries.plugin")
 }
 
 android {
@@ -77,8 +78,8 @@ dependencies {
     implementation "com.google.accompanist:accompanist-swiperefresh:0.17.0"
     implementation "com.google.accompanist:accompanist-placeholder-material:0.17.0"
 
-    //maps
-    implementation "com.google.maps.android:maps-compose:1.0.0"
-    implementation "com.google.android.gms:play-services-maps:18.0.2"
+    //license
+    implementation "com.mikepenz:aboutlibraries-core:10.1.0"
+    implementation "com.mikepenz:aboutlibraries-compose:10.1.0"
 
 }

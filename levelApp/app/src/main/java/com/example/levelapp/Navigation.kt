@@ -4,9 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.levelapp.database.DatabaseHandler
-import com.example.levelapp.ui.HomeScreen
-import com.example.levelapp.ui.SearchScreen
+import com.example.levelapp.ui.*
 
 @Composable
 fun Navigation(appData: AppDataModel) {
@@ -19,6 +17,21 @@ fun Navigation(appData: AppDataModel) {
             composable(route = Screen.SearchScreen.route) {
                 SearchScreen(navController, appData)
             }
+            composable(route = Screen.InfoScreen.route) {
+                InfoScreen(navController = navController)
+            }
+            composable(route = Screen.LizenzScreen.route) {
+                LizenzScreen(navController = navController)
+            }
+            composable(route = Screen.LizenzOpenSourceScreen.route) {
+                LizenzOpenSourceScreen(navController = navController)
+            }
+            composable(route = Screen.QuellenScreen.route) {
+                QuellenScreen(navController = navController)
+            }
+            composable(route = Screen.DatenschutzScreen.route) {
+                DatenschutzScreen(navController = navController)
+            }
         }
     } else {
         NavHost(navController = navController, startDestination = Screen.HomeScreen.route) {
@@ -27,6 +40,21 @@ fun Navigation(appData: AppDataModel) {
             }
             composable(route = Screen.SearchScreen.route) {
                 SearchScreen(navController, appData)
+            }
+            composable(route = Screen.InfoScreen.route) {
+                InfoScreen(navController = navController)
+            }
+            composable(route = Screen.LizenzScreen.route) {
+                LizenzScreen(navController = navController)
+            }
+            composable(route = Screen.LizenzOpenSourceScreen.route) {
+                LizenzOpenSourceScreen(navController = navController)
+            }
+            composable(route = Screen.QuellenScreen.route) {
+                QuellenScreen(navController = navController)
+            }
+            composable(route = Screen.DatenschutzScreen.route) {
+                DatenschutzScreen(navController = navController)
             }
         }
     }

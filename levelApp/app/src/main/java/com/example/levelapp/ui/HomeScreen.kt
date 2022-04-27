@@ -10,7 +10,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.*
@@ -103,19 +105,9 @@ fun HomeScreen(navController: NavController, appData: AppDataModel) {
                         color = textDark
                     )
 
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_search),
-                        contentDescription = "search",
-                        Modifier
-                            .clip(RoundedCornerShape(30.dp))
-                            .clickable {
-                                navController.navigate(Screen.SearchScreen.route)
-                            }
-//                            .background(Color.White)
-                            .padding(15.dp)
-                            .size(20.dp)
-
-                    )
+                    IconButton(onClick = { navController.navigate(Screen.SearchScreen.route) }) {
+                        Icon(Icons.Default.Search, contentDescription = "search")
+                    }
 
                 }
             }
@@ -187,7 +179,7 @@ fun HomeScreen(navController: NavController, appData: AppDataModel) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
-                onClick = { /*TODO*/ },
+                onClick = { navController.navigate(Screen.InfoScreen.route) },
                 colors = ButtonDefaults.buttonColors(backgroundColor = white),
             ) {
                 Spacer(modifier = Modifier.width(10.dp))

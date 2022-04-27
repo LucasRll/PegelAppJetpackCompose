@@ -3,20 +3,25 @@ package com.example.levelapp.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.levelapp.AppDataModel
@@ -25,16 +30,13 @@ import com.example.levelapp.Screen
 import com.example.levelapp.api.Requests
 import com.example.levelapp.database.DatabaseHandler
 import com.example.levelapp.database.data.StationDb
-import com.example.levelapp.ui.theme.background
-import com.example.levelapp.ui.theme.boxBlue
+import com.example.levelapp.ui.theme.*
 import com.example.levelapp.util.StringUtil
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import com.example.levelapp.ui.theme.*
-import com.google.accompanist.placeholder.shimmer
 
 @Composable
 fun SearchScreen(navController: NavController, appData: AppDataModel) {
@@ -44,6 +46,35 @@ fun SearchScreen(navController: NavController, appData: AppDataModel) {
             .fillMaxSize()
     ) {
         Column {
+            TopAppBar(
+                modifier = Modifier
+                    .height(70.dp)
+                    .clip(RoundedCornerShape(bottomStart = 15.dp, bottomEnd = 15.dp))
+                    .shadow(elevation = 5.dp),
+                backgroundColor = boxLightBlue,
+
+                ) {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+//                        .height(130.dp)
+//                        .padding(25.dp)
+                ) {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "back")
+                    }
+                    Text(
+                        text = "Suche",
+                        style = MaterialTheme.typography.h1,
+                        color = textDark
+                    )
+                    IconButton(modifier = Modifier.alpha(0f), onClick = {}) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Placeholder")
+                    }
+                }
+            }
             SearchBox(navController, appData)
             // SearchResults(navController, db)
         }
@@ -83,19 +114,12 @@ fun SearchBox(navController: NavController, appData: AppDataModel) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(15.dp)),
         textStyle = MaterialTheme.typography.body1,
-        maxLines = 1,
+        singleLine = true,
         trailingIcon = {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_search),
-                contentDescription = "search",
-                Modifier
-                    .clip(RoundedCornerShape(30.dp))
-                    .background(Color.White)
-                    .padding(15.dp)
-                    .size(20.dp)
-            )
+            Icon(Icons.Default.Search, contentDescription = "search")
         }
     )
+
 
     /**
      * Nicht schön aber selten, je nachdem ob gesucht wird, wird eine andere List angezeigt
@@ -104,7 +128,6 @@ fun SearchBox(navController: NavController, appData: AppDataModel) {
 
         Box(
             modifier = Modifier
-                //.padding(start = 25.dp, end = 25.dp)
                 .fillMaxWidth()
         ) {
             LazyColumn(
