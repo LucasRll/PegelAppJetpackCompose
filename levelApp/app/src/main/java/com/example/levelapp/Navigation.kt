@@ -9,7 +9,7 @@ import com.example.levelapp.ui.*
 @Composable
 fun Navigation(appData: AppDataModel) {
     val navController = rememberNavController()
-    if (appData.db.readData().size == 1 || appData.db.getSelected().uuid == "") {
+    /*if (appData.db.readData().size == 1 || appData.db.getSelected().uuid == "") {
         NavHost(navController = navController, startDestination = Screen.SearchScreen.route) {
             composable(route = Screen.HomeScreen.route) {
                 HomeScreen(navController, appData)
@@ -32,8 +32,11 @@ fun Navigation(appData: AppDataModel) {
             composable(route = Screen.DatenschutzScreen.route) {
                 DatenschutzScreen(navController = navController)
             }
+            composable(route = Screen.SettingsScreen.route) {
+                SettingsScreen(navController, appData)
+            }
         }
-    } else {
+    } else {*/
         NavHost(navController = navController, startDestination = Screen.HomeScreen.route) {
             composable(route = Screen.HomeScreen.route) {
                 HomeScreen(navController, appData)
@@ -56,6 +59,9 @@ fun Navigation(appData: AppDataModel) {
             composable(route = Screen.DatenschutzScreen.route) {
                 DatenschutzScreen(navController = navController)
             }
+            composable(route = Screen.SettingsScreen.route) {
+                SettingsScreen(navController, appData)
+            }
         }
-    }
+//    }
 }

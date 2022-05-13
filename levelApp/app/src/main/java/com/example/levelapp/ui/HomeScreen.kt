@@ -1,16 +1,12 @@
 package com.example.levelapp.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Info
@@ -32,6 +28,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.example.levelapp.AppDataModel
 import com.example.levelapp.R
 import com.example.levelapp.Screen
@@ -73,6 +70,8 @@ class MyViewModel : ViewModel() {
 
 @Composable
 fun HomeScreen(navController: NavController, appData: AppDataModel) {
+
+    refresh(appData)
 
     val state = rememberScaffoldState()
     val scope = rememberCoroutineScope()
@@ -165,7 +164,7 @@ fun HomeScreen(navController: NavController, appData: AppDataModel) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
-                onClick = { /*TODO*/ },
+                onClick = { navController.navigate(Screen.SettingsScreen.route) },
                 colors = ButtonDefaults.buttonColors(backgroundColor = white),
             ) {
                 Spacer(modifier = Modifier.width(10.dp))
@@ -183,7 +182,7 @@ fun HomeScreen(navController: NavController, appData: AppDataModel) {
                 colors = ButtonDefaults.buttonColors(backgroundColor = white),
             ) {
                 Spacer(modifier = Modifier.width(10.dp))
-                Icon(Icons.Outlined.Info, contentDescription = "settings")
+                Icon(Icons.Outlined.Info, contentDescription = "infos")
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(text = "Infos")
                 Spacer(modifier = Modifier.weight(1f))
@@ -198,8 +197,9 @@ fun HomeScreen(navController: NavController, appData: AppDataModel) {
             onRefresh = { viewModel.refresh(appData) },
         ) {
             Column(Modifier.verticalScroll(rememberScrollState())) {
-                mainView(appData)
-                nearestStations(appData)
+                MainView(appData)
+                NearestStations(appData)
+                Rewind(appData)
             }
         }
     }
@@ -207,7 +207,7 @@ fun HomeScreen(navController: NavController, appData: AppDataModel) {
 }
 
 @Composable
-fun mainView(appData: AppDataModel) {
+fun MainView(appData: AppDataModel) {
     val stationRemember = remember { appData.selectedStationDb }
     Box(
         modifier = Modifier
@@ -216,7 +216,7 @@ fun mainView(appData: AppDataModel) {
             .background(
                 brush = Brush.horizontalGradient(
                     colors = listOf(
-                        boxDarkBlue,
+                        boxBlue,
                         boxLightBlue
                     )
                 )
@@ -329,6 +329,18 @@ fun getNearest(appData: AppDataModel) {
     }
 }
 
+fun refresh(appData: AppDataModel) {
+    GlobalScope.launch {
+        appData.setSelectedStation(
+            appData.db.updateMeasurement(
+                appData.api.getMeasurement(
+                    appData.db.getSelected()
+                )
+            )
+        )
+    }
+}
+
 /**
  * clears and adds new list, so there is only one recomposing
  */
@@ -339,7 +351,7 @@ fun <T> SnapshotStateList<T>.swapList(newList: List<T>) {
 
 
 @Composable
-fun nearestStations(appData: AppDataModel) {
+fun NearestStations(appData: AppDataModel) {
     getNearest(appData)
 //    val nearestStationsRemember = remember { appData.nearestStations }
     val nearestStationsRemember = appData.nearestStations
@@ -422,24 +434,36 @@ fun selectNearestStation(stationDb: StationDb, appData: AppDataModel) {
 }
 
 @Composable
-fun rewind() {
+fun Rewind(appData: AppDataModel) {
+
+    val nameSelected = appData.selectedStationDb.value.longname
+    val days = 7
+    val imageUrl = "https://pegelonline-int.wsv.de/webservices/rest-api/v2/stations/${nameSelected}/W/measurements.png?start=P${days}D&width=925&height=600"
+
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp))
             .background(Color.White)
             .fillMaxWidth()
-            .height(400.dp)
+            .height(350.dp)
+//            .fillMaxHeight()
     ) {
         Column(
             modifier = Modifier
                 .padding(25.dp)
         ) {
             Text(
-                text = "20-Tage Rückblick",
+                text = "7-Tage Rückblick",
                 style = MaterialTheme.typography.h2,
                 color = textDark
+            )
+            Image(
+                painter = rememberAsyncImagePainter(imageUrl),
+                contentDescription = null,
+                modifier = Modifier.padding(top = 25.dp)
             )
         }
     }
 }
+
 

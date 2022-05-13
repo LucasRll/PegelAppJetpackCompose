@@ -8,4 +8,5 @@ sealed class Screen(val route: String) {
     object LizenzOpenSourceScreen: Screen("LizenzOpenSourceScreen")
     object QuellenScreen: Screen("QuellenScreen")
     object DatenschutzScreen: Screen("DatenschutzScreen")
+    object SettingsScreen: Screen("SettingsScreen")
 }
